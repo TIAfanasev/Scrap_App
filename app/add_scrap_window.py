@@ -1,42 +1,49 @@
 from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtCore import Qt as Qtt
 
+from app.db_requests import check_weight
 
-class AddScrap(Qt.QDialog):
 
-    def __init__(self, parent=None):
+class AddDelScrap(Qt.QDialog):
+
+    def __init__(self, name_list, flag, parent=None):
         super().__init__(parent)
+        self.flag = flag
+        self.result_dict = None
         self.row_count = None
-        self.test_data = None
+        self.name_list = name_list
+        self.name_list.sort()
+        self.name_list.insert(0, "Выберите наименование")
         self.setGeometry(560, 240, 800, 600)
-        self.setWindowTitle('Прибытие')
+        if flag:
+            self.setWindowTitle('Прибытие')
+        else:
+            self.setWindowTitle('Убытие')
         self.setWindowIcon(QtGui.QIcon("Icon.png"))
 
         self.group_list = []
         # self.roles_copy = list(Var.roles)
-
-        self.label = Qt.QLabel('Выберите группу(-ы)')
-        self.label.setStyleSheet("color:#0095DA; font: bold 20pt 'MS Shell Dlg 2';")
+        if flag:
+            self.label = Qt.QLabel('Выберите прибывшие наименование(-я)')
+        else:
+            self.label = Qt.QLabel('Выберите убывшие наименование(-я)')
+        self.label.setStyleSheet("color:black; font: bold 20pt 'Arial';")
         self.label.setAlignment(Qtt.AlignCenter)
-
-        self.groups = Qt.QLabel()
-        # self.groups.setFont(Var.font)
 
         self.table = Qt.QTableWidget()
         # self.table.setFont(Var.font)
 
-        self.start = Qt.QPushButton('Старт!')
+        self.start = Qt.QPushButton('Сохранить и выйти')
         # self.start.setFont(Var.font)
 
         self.v_layout = Qt.QVBoxLayout(self)
         self.v_layout.addWidget(self.label)
-        self.v_layout.addWidget(self.groups)
         self.v_layout.addWidget(self.table)
         self.v_layout.addWidget(self.start)
 
         self.name_table()
 
-        self.start.clicked.connect(self.start_btn)
+        self.start.clicked.connect(self.go_out_btn)
 
     def name_table(self):
         self.table.clear()
@@ -46,8 +53,6 @@ class AddScrap(Qt.QDialog):
 
         self.row_count = self.table.rowCount()
         self.table.insertRow(self.row_count)
-
-        self.test_data = ["Выберите наименование", "Медь", "Сталь"]
 
         self.row_items()
         # for x in self.roles_copy:
@@ -79,7 +84,7 @@ class AddScrap(Qt.QDialog):
 
     def row_items(self):
         item = Qt.QComboBox()
-        item.addItems(self.test_data)
+        item.addItems(self.name_list)
 
         # item.setTextAlignment(Qtt.AlignCenter)
         item.currentTextChanged.connect(self.add_new_row)
@@ -91,29 +96,57 @@ class AddScrap(Qt.QDialog):
         self.table.setCellWidget(self.row_count, 1, item)
 
         item = Qt.QPushButton('Del')
-        # item.clicked.connect(self.add_btn)
+        item.clicked.connect(self.del_btn)
+        item.setDisabled(True)
         self.table.setCellWidget(self.row_count, 2, item)
 
     def add_new_row(self):
         self.table.cellWidget(self.row_count, 0).setDisabled(True)
         self.table.cellWidget(self.row_count, 1).setDisabled(False)
+        self.table.cellWidget(self.row_count, 2).setDisabled(False)
         name = self.table.cellWidget(self.row_count, 0).currentText()
-        self.test_data.remove(name)
+        self.name_list.remove(name)
         self.row_count = self.table.rowCount()
         self.table.insertRow(self.row_count)
         self.row_items()
 
-    def start_btn(self):
-        result_dict = {}
+    def go_out_btn(self):
+        self.result_dict = {}
         try:
             for x in range(self.row_count):
                 key = self.table.cellWidget(x, 0).currentText()
                 value = float(self.table.cellWidget(x, 1).text())
-                result_dict[key] = value
-        except Exception as e:
+                if not value:
+                    raise ValueError
+                elif not self.flag and not check_weight(key, value):
+                    raise Warning
+                else:
+                    self.result_dict[key] = value
+        except ValueError as e:
             print(e)
             Qt.QMessageBox.critical(self, 'Ошибка!', 'В поле количество введите массу в тоннах!\nДробная часть '
-                                                             'вводится через точку.')
+                                                     'вводится через точку.')
+        except Warning as e:
+            print(e)
+            Qt.QMessageBox.critical(self, 'Ошибка!', f'Вес наименования {key} превышает доступный в наличии!')
         else:
-            print(result_dict)
             self.accept()
+
+    def del_btn(self):
+        name = self.table.cellWidget(self.table.currentRow(), 0).currentText()
+        self.name_list.append(name)
+        self.table.update()
+        self.table.removeRow(self.table.currentRow())
+        self.row_count = self.table.rowCount() - 1
+
+        self.upd_list()
+
+    def upd_list(self):
+        self.name_list.remove("Выберите наименование")
+        self.name_list.sort()
+        self.name_list.insert(0, "Выберите наименование")
+
+        item = Qt.QComboBox()
+        item.addItems(self.name_list)
+        item.currentTextChanged.connect(self.add_new_row)
+        self.table.setCellWidget(self.row_count, 0, item)

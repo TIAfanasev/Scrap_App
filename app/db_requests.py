@@ -1,8 +1,10 @@
 from datetime import datetime
 
+from sqlalchemy import update
+
 from app.database import sync_engine, session_factory, Base
 
-from models import Users, ScrapList
+from models import Users, ScrapList, NameList
 
 
 def create_tables():
@@ -20,15 +22,19 @@ def create_test():
                       login='user2',
                       password='hf34jcpws9wjrmcjkdwio20833jd8dxc')
         session.add_all([user1, user2])
+
+        name1 = NameList(name='Сталь')
+        name2 = NameList(name='Медь')
+        session.add_all([name1, name2])
         session.commit()
 
-        scrap1 = ScrapList(name="Сталь",
+        scrap1 = ScrapList(name=1,
                            weight=2.5,
                            price=100,
                            percent_nds=5.0,
                            edit_date=datetime.utcnow(),
                            editor=1)
-        scrap2 = ScrapList(name="Медь",
+        scrap2 = ScrapList(name=2,
                            weight=0.3,
                            price=57,
                            percent_nds=0.0,
@@ -38,7 +44,45 @@ def create_test():
         session.commit()
 
 
+def scrap_names(n_id=None):
+    if n_id:
+        with session_factory() as session:
+            name = session.query(NameList.name).where(NameList.id == n_id).one()
+            # print(name)
+            return name[0]
+
+
 def all_table():
     with session_factory() as session:
         scraps = session.query(ScrapList).all()
         return scraps
+
+
+def add_new_metal(add_dict):
+    with session_factory() as session:
+        for x in add_dict:
+            n_id = session.query(NameList.id).where(NameList.name == x).one()[0]
+            current_values = session.query(ScrapList).where(ScrapList.name == n_id).one()
+            updt = update(ScrapList).where(ScrapList.name == n_id).values(weight=format(current_values.weight + add_dict[x], '.2f'))
+            session.execute(updt)
+        session.commit()
+
+
+def check_weight(name, weight):
+    with session_factory() as session:
+        n_id = session.query(NameList.id).where(NameList.name == name).one()[0]
+        current_value = session.query(ScrapList.weight).where(ScrapList.name == n_id).one()
+        if current_value[0] >= weight:
+            return True
+        else:
+            return False
+
+
+def out_metal(del_dict):
+    with session_factory() as session:
+        for x in del_dict:
+            n_id = session.query(NameList.id).where(NameList.name == x).one()[0]
+            current_values = session.query(ScrapList).where(ScrapList.name == n_id).one()
+            updt = update(ScrapList).where(ScrapList.name == n_id).values(weight=format(current_values.weight - del_dict[x], '.2f'))
+            session.execute(updt)
+        session.commit()

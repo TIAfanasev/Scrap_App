@@ -6,8 +6,8 @@ import sys
 
 import styles
 from app.database import Base, sync_engine
-from app.db_requests import create_tables, create_test, all_table
-from add_scrap_window import AddScrap
+from app.db_requests import create_tables, create_test, all_table, scrap_names, add_new_metal, out_metal
+from add_scrap_window import AddDelScrap
 
 #import Var
 
@@ -18,6 +18,7 @@ class MainWindow(Qt.QMainWindow):
         super().__init__()
 
         # Прорисовка окна приложения
+        self.name_list = set()
         self.setGeometry(0, 0, 1500, 600)
         self.setWindowTitle('Главное окно')
         self.setWindowIcon(QIcon("Icon.png"))
@@ -65,6 +66,9 @@ class MainWindow(Qt.QMainWindow):
         self.v_layout.addWidget(self.notif)
         self.v_layout.addLayout(self.button_layout)
         central_widget.setLayout(self.v_layout)
+
+        self.add_scrap_btn.clicked.connect(self.add_scrap)
+        self.out_scrap_button.clicked.connect(self.out_scrap)
 
         self.state_cb()
     #     # Первое заполнение таблицы
@@ -147,7 +151,9 @@ class MainWindow(Qt.QMainWindow):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 0, item)
 
-            item = QTableWidgetItem(row.name)
+            name = scrap_names(row.name)
+            item = QTableWidgetItem(name)
+            self.name_list.add(name)
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 1, item)
 
@@ -169,13 +175,13 @@ class MainWindow(Qt.QMainWindow):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 5, item)
 
-            nds = float(format(row.percent_nds * cost, '.2f'))
+            nds = float(format(row.percent_nds * cost * 0.01, '.2f'))
 
             item = QTableWidgetItem(str(nds))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 6, item)
 
-            item = QTableWidgetItem(str(cost - nds*0.01))
+            item = QTableWidgetItem(str(cost - nds))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 7, item)
 
@@ -187,11 +193,23 @@ class MainWindow(Qt.QMainWindow):
         self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.table.resizeRowsToContents()
 
-        self.add_scrap_btn.clicked.connect(self.add_scrap)
-
     def add_scrap(self):
-        st = AddScrap(parent=self)
-        st.exec_()
+        st = AddDelScrap(list(self.name_list), True)
+        if st.exec_() == QtWidgets.QDialog.Accepted:
+            print(st.result_dict)
+            if st.result_dict:
+                add_new_metal(st.result_dict)
+        self.state_cb()
+
+    def out_scrap(self):
+        dw = AddDelScrap(list(self.name_list), False)
+        if dw.exec_() == QtWidgets.QDialog.Accepted:
+            print(dw.result_dict)
+            if dw.result_dict:
+                out_metal(dw.result_dict)
+        self.state_cb()
+
+
 
 
 if __name__ == '__main__':
