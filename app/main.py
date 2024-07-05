@@ -7,7 +7,8 @@ import sys
 import styles
 from app.database import Base, sync_engine
 from app.db_requests import create_tables, create_test, all_table, scrap_names, add_new_metal, out_metal
-from add_scrap_window import AddDelScrap
+from add_del_scrap_window import AddDelScrap
+from app.change_info_window import ChangeScrap
 
 #import Var
 
@@ -69,6 +70,7 @@ class MainWindow(Qt.QMainWindow):
 
         self.add_scrap_btn.clicked.connect(self.add_scrap)
         self.out_scrap_button.clicked.connect(self.out_scrap)
+        self.edit_namelist_btn.clicked.connect(self.edit_scrap)
 
         self.state_cb()
     #     # Первое заполнение таблицы
@@ -190,7 +192,7 @@ class MainWindow(Qt.QMainWindow):
         self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        # self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.table.resizeRowsToContents()
 
     def add_scrap(self):
@@ -209,6 +211,11 @@ class MainWindow(Qt.QMainWindow):
                 out_metal(dw.result_dict)
         self.state_cb()
 
+    def edit_scrap(self):
+        et = ChangeScrap(list(self.name_list))
+        if et.exec_() == QtWidgets.QDialog.Accepted:
+            print('succ')
+        self.state_cb()
 
 
 

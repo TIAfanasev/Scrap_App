@@ -22,7 +22,6 @@ class AddDelScrap(Qt.QDialog):
         self.setWindowIcon(QtGui.QIcon("Icon.png"))
 
         self.group_list = []
-        # self.roles_copy = list(Var.roles)
         if flag:
             self.label = Qt.QLabel('Выберите прибывшие наименование(-я)')
         else:

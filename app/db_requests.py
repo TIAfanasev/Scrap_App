@@ -86,3 +86,10 @@ def out_metal(del_dict):
             updt = update(ScrapList).where(ScrapList.name == n_id).values(weight=format(current_values.weight - del_dict[x], '.2f'))
             session.execute(updt)
         session.commit()
+
+
+def get_nds_price_by_name(name):
+    with session_factory() as session:
+        n_id = session.query(NameList.id).where(NameList.name == name).one()[0]
+        info = session.query(ScrapList.price, ScrapList.percent_nds).where(ScrapList.name == n_id).one()
+        return info
