@@ -4,7 +4,7 @@ from PyQt5 import Qt, QtWidgets
 from PyQt5.QtGui import QIcon
 import sys
 
-from app.db_requests import get_nds_price_by_name
+from app.db_requests import get_nds_price_by_name, update_price_or_nds, check_name_unique, update_name
 
 
 class ChangeScrap(Qt.QDialog):
@@ -30,10 +30,11 @@ class ChangeScrap(Qt.QDialog):
         self.v_layout.addWidget(self.label)
         self.v_layout.addWidget(self.table)
 
-        self.table.itemDoubleClicked.connect(self.item_click)
-
         self.scrap_table()
-        self.table_filling()
+        # self.table_filling()
+
+        self.table.currentItemChanged.connect(self.item_click)
+        self.table.cellChanged.connect(self.item_changed)
 
     def scrap_table(self):
         self.table.clear()
@@ -45,6 +46,8 @@ class ChangeScrap(Qt.QDialog):
         self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         # self.table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+
+        self.table_filling()
 
     def table_filling(self):
         for name in self.name_list:
@@ -70,8 +73,9 @@ class ChangeScrap(Qt.QDialog):
             self.table.setCellWidget(row_count, 3, item)
 
     def item_click(self):
-        self.previous_value = self.table.currentItem().text()
-        print(self.previous_value)
+        if self.table.currentColumn() in [0, 1, 2]:
+            self.previous_value = self.table.currentItem().text()
+            print(self.previous_value)
 
     def item_changed(self):
         current_value = self.table.currentItem().text()
@@ -82,7 +86,17 @@ class ChangeScrap(Qt.QDialog):
                 print(e)
                 Qt.QMessageBox.critical(self, 'Ошибка!', '% НДС или цена заполнены неверно!\nДробная часть '
                                                          'вводится через точку.')
+                self.table.currentItem().setText(self.previous_value)
             else:
-                item = QTableWidgetItem(str(current_value))
-                item.setTextAlignment(Qtt.AlignCenter)
-                self.table.setItem(self.table.currentRow(), self.table.currentColumn(), item)
+                if self.table.currentColumn() == 1:
+                    update_price_or_nds(self.table.item(self.table.currentRow(), 0).text(), current_value, True)
+                elif self.table.currentColumn() == 2:
+                    update_price_or_nds(self.table.item(self.table.currentRow(), 0).text(), current_value, False)
+                self.table.currentItem().setText(format(current_value, '.2f'))
+
+        elif self.table.currentColumn() == 0:
+            if check_name_unique(current_value):
+                update_name(self.previous_value, current_value)
+            else:
+                Qt.QMessageBox.critical(self, 'Ошибка!', 'Такое название уже существует!')
+                self.table.currentItem().setText(self.previous_value)

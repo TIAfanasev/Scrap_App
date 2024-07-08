@@ -215,8 +215,8 @@ class MainWindow(Qt.QMainWindow):
         et = ChangeScrap(list(self.name_list))
         if et.exec_() == QtWidgets.QDialog.Accepted:
             print('succ')
+        self.name_list = set()
         self.state_cb()
-
 
 
 if __name__ == '__main__':

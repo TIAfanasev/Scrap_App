@@ -93,3 +93,27 @@ def get_nds_price_by_name(name):
         n_id = session.query(NameList.id).where(NameList.name == name).one()[0]
         info = session.query(ScrapList.price, ScrapList.percent_nds).where(ScrapList.name == n_id).one()
         return info
+
+
+def update_price_or_nds(name, value, flag):
+    with session_factory() as session:
+        n_id = session.query(NameList.id).where(NameList.name == name).one()[0]
+        if flag:
+            updt = update(ScrapList).where(ScrapList.name == n_id).values(price=format(value, '.2f'))
+        else:
+            updt = update(ScrapList).where(ScrapList.name == n_id).values(percent_nds=format(value, '.2f'))
+        session.execute(updt)
+        session.commit()
+
+
+def check_name_unique(name):
+    with session_factory() as session:
+        n_id = session.query(NameList.id).where(NameList.name == name).all()
+        return not n_id
+
+
+def update_name(old_name, new_name):
+    with session_factory() as session:
+        updt = update(NameList).where(NameList.name == old_name).values(name=new_name)
+        session.execute(updt)
+        session.commit()
