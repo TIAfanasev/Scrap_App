@@ -1,21 +1,25 @@
 from PyQt5.QtCore import Qt as Qtt
-from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem
+from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QInputDialog
 from PyQt5 import Qt, QtWidgets
 from PyQt5.QtGui import QIcon
 import sys
 
 import styles
+from app.admin_window import Admin
 from app.database import Base, sync_engine
 from app.db_requests import create_tables, create_test, all_table, scrap_names, add_new_metal, out_metal
 from add_del_scrap_window import AddDelScrap
 from app.change_info_window import ChangeScrap
+from app.excel_reports import create_report
+from app.login import Login
+
 
 #import Var
 
 
 class MainWindow(Qt.QMainWindow):
 
-    def __init__(self):
+    def __init__(self, role):
         super().__init__()
 
         # Прорисовка окна приложения
@@ -44,10 +48,12 @@ class MainWindow(Qt.QMainWindow):
         self.edit_namelist_btn.setFont(styles.font)
         self.report_btn = Qt.QPushButton('Выгрузить отчет')
         self.report_btn.setFont(styles.font)
+        self.admin_menu_btn = Qt.QPushButton('Администрирование')
+        self.admin_menu_btn.setFont(styles.font)
 
-        self.notif = Qt.QLabel('*перейти в редактирование можно двойным нажатием '
-                               'ЛКМ по нужной ячейке или специальными кнопками ниже')
-        self.notif.setStyleSheet("color:grey; font: 9pt 'Arial';")
+        # self.notif = Qt.QLabel('*перейти в редактирование можно двойным нажатием '
+        #                        'ЛКМ по нужной ячейке или специальными кнопками ниже')
+        # self.notif.setStyleSheet("color:grey; font: 9pt 'Arial';")
 
         self.check_layout = Qt.QHBoxLayout()
         # self.check_layout.addWidget(self.checkbox_process)
@@ -61,79 +67,27 @@ class MainWindow(Qt.QMainWindow):
         self.button_layout.addWidget(self.out_scrap_button)
         self.button_layout.addWidget(self.edit_namelist_btn)
         self.button_layout.addWidget(self.report_btn)
+        if role == 2:
+            self.button_layout.addWidget(self.admin_menu_btn)
         self.v_layout.addWidget(self.main_label)
         self.v_layout.addLayout(self.check_layout)
         self.v_layout.addLayout(self.table_layout)
-        self.v_layout.addWidget(self.notif)
         self.v_layout.addLayout(self.button_layout)
         central_widget.setLayout(self.v_layout)
 
         self.add_scrap_btn.clicked.connect(self.add_scrap)
         self.out_scrap_button.clicked.connect(self.out_scrap)
         self.edit_namelist_btn.clicked.connect(self.edit_scrap)
+        self.report_btn.clicked.connect(self.create_new_report)
+        self.admin_menu_btn.clicked.connect(self.admin_window)
 
         self.state_cb()
-    #     # Первое заполнение таблицы
-    #     self.state_cb()
-    #
-    #     # Проверка изменения состояния чекбокса
-    #     self.checkbox_process.stateChanged.connect(self.state_cb)
-    #
-    #     # Сигнал двойного нажатия по элементу таблицы
-    #     self.table.doubleClicked.connect(self.item_doubleclick)
-    #
-    #     # Нажатие кнопки обновления таблицы
-    #     self.refresh_btn.clicked.connect(self.state_cb)
-    #
-    #     self.edit_bld_btn.clicked.connect(self.editor)
-    #
-    #     self.edit_clnt_btn.clicked.connect(self.editor)
-    #
-    #     self.add_req_btn.clicked.connect(self.add)
-    #
-    # def add(self):
-    #     ad = Add_request.NewReq()
-    #     if ad.exec_():
-    #         self.state_cb()
-    #
-    # def editor(self):
-    #     sender = self.sender()
-    #     if sender.text() == 'Список зданий':
-    #         self.edit = List_editor.ListEditor(1)
-    #     else:
-    #         self.edit = List_editor.ListEditor(0)
-    #
-    #     if self.edit.exec_():
-    #         self.state_cb()
-    #
 
     # Обработка изменения чекбокса
     def state_cb(self):
         self.table_filling()
         self.table.resizeRowsToContents()
 
-    # def item_doubleclick(self):
-    #     cur_id = self.table.item(self.table.currentRow(), 0).text()
-    #     if self.table.currentColumn() in [1, 5, 6, 7, 8, 9]:
-    #         cl_id = Var.one_query('client', 'apps', cur_id)
-    #         ec = Client_Editor.EditClient(cl_id)
-    #         ec.exec_()
-    #         self.state_cb()
-    #
-    #     elif self.table.currentColumn() == 2:
-    #         hs_id = Var.one_query('building', 'apps', cur_id)
-    #         eh = Build_Editor.EditBuild(hs_id)
-    #         eh.exec_()
-    #         self.state_cb()
-    #
-    # def checkbox_edit(self):
-    #     ch = self.sender()
-    #     ix = self.table.indexAt(ch.pos())
-    #     cur_id = self.table.item(ix.row(), 0).text()
-    #     work_query = f'UPDATE apps SET ready = \'{ch.isChecked()}\' WHERE id = {cur_id}'
-    #     Var.cursor.execute(work_query)
-    #     Var.connection.commit()
-    #
     # # Заполнение таблицы значениями из БД
     def table_filling(self):
 
@@ -218,12 +172,27 @@ class MainWindow(Qt.QMainWindow):
         self.name_list = set()
         self.state_cb()
 
+    def create_new_report(self):
+        text, ok = QInputDialog.getText(self, 'Новый отчет', 'Введите название файла\nили оставьте поле пустым\n')
+        if ok:
+            if text:
+                create_report(text)
+            else:
+                Qt.QMessageBox.critical(self, 'Ошибка!', 'Название файла не может быть пустым!')
+
+    def admin_window(self):
+        adm = Admin()
+        adm.exec_()
+
 
 if __name__ == '__main__':
-
     create_tables()
     create_test()
     app = Qt.QApplication(sys.argv)
-    w = MainWindow()
-    w.showMaximized()
+    lg = Login()
+    if True:  # lg.exec_() == QtWidgets.QDialog.Accepted:
+        w = MainWindow(2)
+        w.showMaximized()
+    else:
+        sys.exit()
     sys.exit(app.exec_())

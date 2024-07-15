@@ -1,7 +1,9 @@
 from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtCore import Qt as Qtt
+from PyQt5.QtWidgets import QMessageBox, QInputDialog
+from openpyxl.workbook import Workbook
 
-from app.db_requests import check_weight
+from app.db_requests import check_weight, get_id_by_name, get_nds_price_by_name
 
 
 class AddDelScrap(Qt.QDialog):
@@ -84,8 +86,6 @@ class AddDelScrap(Qt.QDialog):
     def row_items(self):
         item = Qt.QComboBox()
         item.addItems(self.name_list)
-
-        # item.setTextAlignment(Qtt.AlignCenter)
         item.currentTextChanged.connect(self.add_new_row)
         self.table.setCellWidget(self.row_count, 0, item)
 
@@ -129,6 +129,18 @@ class AddDelScrap(Qt.QDialog):
             print(e)
             Qt.QMessageBox.critical(self, 'Ошибка!', f'Вес наименования {key} превышает доступный в наличии!')
         else:
+            button = QMessageBox.question(self, "Создание отчета", "Сохранить отчет об изменениях?")
+            if button == QMessageBox.Yes:
+                name = ''
+                while not name:
+                    name, ok = QInputDialog.getText(self, 'Новый отчет',
+                                                    'Введите название файла\nили оставьте поле пустым\n')
+                    if ok:
+                        if name:
+                            self.edit_report(name)
+                        else:
+                            Qt.QMessageBox.critical(self, 'Ошибка!', 'Название файла не может быть пустым!')
+
             self.accept()
 
     def del_btn(self):
@@ -149,3 +161,34 @@ class AddDelScrap(Qt.QDialog):
         item.addItems(self.name_list)
         item.currentTextChanged.connect(self.add_new_row)
         self.table.setCellWidget(self.row_count, 0, item)
+
+    def edit_report(self, name):
+        wb = Workbook()
+
+        ws = wb.active
+        if self.flag:
+            ws.title = "Прибытие"
+        else:
+            ws.title = "Убытие"
+
+        titles = ["ID", "Наименование", "Количество", "Цена", "Сумма", "% НДС", "НДС", "Всего"]
+
+        for x in range(1, 9):
+            ws.cell(row=1, column=x, value=titles[x - 1])
+
+        y = 2
+        for one in self.result_dict.keys():
+            ws.cell(row=y, column=1, value=get_id_by_name(one))
+            ws.cell(row=y, column=2, value=one)
+            ws.cell(row=y, column=3, value=self.result_dict[one])
+            nds_n_price = get_nds_price_by_name(one)
+            ws.cell(row=y, column=4, value=nds_n_price.price)
+            cost = float(format(nds_n_price.price * self.result_dict[one], '.2f'))
+            ws.cell(row=y, column=5, value=cost)
+            ws.cell(row=y, column=6, value=nds_n_price.percent_nds)
+            nds = float(format(nds_n_price.percent_nds * cost * 0.01, '.2f'))
+            ws.cell(row=y, column=7, value=nds)
+            ws.cell(row=y, column=8, value=cost - nds)
+            y += 1
+
+        wb.save(f'{name}.xlsx')

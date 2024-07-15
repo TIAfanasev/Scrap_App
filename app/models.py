@@ -19,6 +19,14 @@ class Users(Base):
     name: Mapped[str]
     login: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str]
+    role: Mapped[int] = mapped_column(ForeignKey("roles_list.id", ondelete="CASCADE"))
+
+
+class Roles(Base):
+    __tablename__ = "roles_list"
+
+    id: Mapped[intpk]
+    role: Mapped[str] = mapped_column(unique=True)
 
 
 class ScrapList(Base):
