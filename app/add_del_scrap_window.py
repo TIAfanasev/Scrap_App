@@ -129,19 +129,22 @@ class AddDelScrap(Qt.QDialog):
             print(e)
             Qt.QMessageBox.critical(self, 'Ошибка!', f'Вес наименования {key} превышает доступный в наличии!')
         else:
-            button = QMessageBox.question(self, "Создание отчета", "Сохранить отчет об изменениях?")
-            if button == QMessageBox.Yes:
-                name = ''
-                while not name:
-                    name, ok = QInputDialog.getText(self, 'Новый отчет',
-                                                    'Введите название файла\nили оставьте поле пустым\n')
-                    if ok:
-                        if name:
-                            self.edit_report(name)
-                        else:
-                            Qt.QMessageBox.critical(self, 'Ошибка!', 'Название файла не может быть пустым!')
+            if self.result_dict:
+                button = QMessageBox.question(self, "Создание отчета", "Сохранить отчет об изменениях?")
+                if button == QMessageBox.Yes:
+                    name = ''
+                    while not name:
+                        name, ok = QInputDialog.getText(self, 'Новый отчет',
+                                                        'Введите название файла\nили оставьте поле пустым\n')
+                        if ok:
+                            if name:
+                                self.edit_report(name)
+                            else:
+                                Qt.QMessageBox.critical(self, 'Ошибка!', 'Название файла не может быть пустым!')
 
-            self.accept()
+                self.accept()
+            else:
+                self.reject()
 
     def del_btn(self):
         name = self.table.cellWidget(self.table.currentRow(), 0).currentText()

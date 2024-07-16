@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import update
+from sqlalchemy import update, delete
 
 from app.database import sync_engine, session_factory, Base
 
@@ -43,13 +43,13 @@ def create_test():
                            weight=2.5,
                            price=100,
                            percent_nds=5.0,
-                           edit_date=datetime.utcnow(),
+                           edit_date=datetime.now(),
                            editor=1)
         scrap2 = ScrapList(name=2,
                            weight=0.3,
                            price=57,
                            percent_nds=0.0,
-                           edit_date=datetime.utcnow(),
+                           edit_date=datetime.now(),
                            editor=2)
         session.add_all([scrap1, scrap2])
         session.commit()
@@ -69,7 +69,7 @@ def all_table():
         return scraps
 
 
-def add_new_metal(add_dict):
+def update_weight(u_id, add_dict):
     with session_factory() as session:
         for x in add_dict:
             n_id = session.query(NameList.id).where(NameList.name == x).one()[0]
@@ -90,13 +90,15 @@ def check_weight(name, weight):
             return False
 
 
-def out_metal(del_dict):
+def out_metal(u_id, del_dict):
     with session_factory() as session:
         for x in del_dict:
             n_id = session.query(NameList.id).where(NameList.name == x).one()[0]
             current_values = session.query(ScrapList).where(ScrapList.name == n_id).one()
             updt = update(ScrapList).where(ScrapList.name == n_id).values(
-                weight=format(current_values.weight - del_dict[x], '.2f'))
+                weight=format(current_values.weight - del_dict[x], '.2f'),
+                edit_date=datetime.utcnow(),
+                editor=u_id)
             session.execute(updt)
         session.commit()
 
@@ -108,24 +110,28 @@ def get_nds_price_by_name(name):
         return info
 
 
-def update_price_or_nds(name, value, flag):
+def update_price_or_nds(u_id, name, value, flag):
     with session_factory() as session:
         n_id = session.query(NameList.id).where(NameList.name == name).one()[0]
         if flag:
-            updt = update(ScrapList).where(ScrapList.name == n_id).values(price=format(value, '.2f'))
+            updt = update(ScrapList).where(ScrapList.name == n_id).values(price=format(value, '.2f'),
+                                                                          edit_date=datetime.now(),
+                                                                          editor=u_id)
         else:
-            updt = update(ScrapList).where(ScrapList.name == n_id).values(percent_nds=format(value, '.2f'))
+            updt = update(ScrapList).where(ScrapList.name == n_id).values(percent_nds=format(value, '.2f'),
+                                                                          edit_date=datetime.now(),
+                                                                          editor=u_id)
         session.execute(updt)
         session.commit()
 
 
-def check_name_unique(name):
+def check_scrapname_unique(name):
     with session_factory() as session:
         n_id = session.query(NameList.id).where(NameList.name == name).all()
         return not n_id
 
 
-def update_name(old_name, new_name):
+def update_scrapname(u_id, old_name, new_name):
     with session_factory() as session:
         updt = update(NameList).where(NameList.name == old_name).values(name=new_name)
         session.execute(updt)
@@ -159,12 +165,18 @@ def get_user_info(u_id=None):
         return users
 
 
-def update_user(u_id, name, login, password=None):
+def update_user(u_id, name, login, role, password=None):
     with session_factory() as session:
+        r_id = session.query(Roles.id).where(Roles.role == role).one()[0]
         if password:
-            updt = update(Users).where(Users.id == u_id).values(name=name, login=login, password=password)
+            updt = update(Users).where(Users.id == u_id).values(name=name,
+                                                                login=login,
+                                                                role=r_id,
+                                                                password=password)
         else:
-            updt = update(Users).where(Users.id == u_id).values(name=name, login=login)
+            updt = update(Users).where(Users.id == u_id).values(name=name,
+                                                                login=login,
+                                                                role=r_id)
         session.execute(updt)
         session.commit()
 
@@ -177,3 +189,39 @@ def check_unique_login(login):
         else:
             return True
 
+
+def get_all_roles():
+    with session_factory() as session:
+        roles = session.query(Roles.role).all()
+        role_list = []
+        for r in roles:
+            role_list.append(r[0])
+        return role_list
+
+
+def create_user(name, login, password, role):
+    with session_factory() as session:
+        r_id = session.query(Roles.id).where(Roles.role == role).one()[0]
+        user = Users(name=name,
+                     login=login,
+                     password=password,
+                     role=r_id)
+        session.add(user)
+        session.commit()
+
+
+def delete_user(u_id):
+    with session_factory() as session:
+        updt = update(ScrapList).where(ScrapList.editor == u_id).values(editor=None)
+        session.execute(updt)
+        session.commit()
+
+        dlt = delete(Users).where(Users.id == u_id)
+        session.execute(dlt)
+        session.commit()
+
+
+def get_name_by_id(u_id):
+    with session_factory() as session:
+        name = session.query(Users.name).where(Users.id == u_id).one()
+        return name[0]

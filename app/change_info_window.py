@@ -4,14 +4,15 @@ from PyQt5 import Qt, QtWidgets
 from PyQt5.QtGui import QIcon
 import sys
 
-from app.db_requests import get_nds_price_by_name, update_price_or_nds, check_name_unique, update_name
+from app.db_requests import get_nds_price_by_name, update_price_or_nds, check_scrapname_unique, update_scrapname
 
 
 class ChangeScrap(Qt.QDialog):
 
-    def __init__(self, name_list, parent=None):
+    def __init__(self, u_id, name_list, parent=None):
         super().__init__(parent)
 
+        self.u_id = u_id
         self.previous_value = None
         self.row_count = None
         self.name_list = name_list
@@ -89,14 +90,14 @@ class ChangeScrap(Qt.QDialog):
                 self.table.currentItem().setText(self.previous_value)
             else:
                 if self.table.currentColumn() == 1:
-                    update_price_or_nds(self.table.item(self.table.currentRow(), 0).text(), current_value, True)
+                    update_price_or_nds(self.u_id, self.table.item(self.table.currentRow(), 0).text(), current_value, True)
                 elif self.table.currentColumn() == 2:
-                    update_price_or_nds(self.table.item(self.table.currentRow(), 0).text(), current_value, False)
+                    update_price_or_nds(self.u_id, self.table.item(self.table.currentRow(), 0).text(), current_value, False)
                 self.table.currentItem().setText(format(current_value, '.2f'))
 
         elif self.table.currentColumn() == 0:
-            if check_name_unique(current_value):
-                update_name(self.previous_value, current_value)
+            if check_scrapname_unique(current_value):
+                update_scrapname(self.u_id, self.previous_value, current_value)
             else:
                 Qt.QMessageBox.critical(self, 'Ошибка!', 'Такое название уже существует!')
                 self.table.currentItem().setText(self.previous_value)

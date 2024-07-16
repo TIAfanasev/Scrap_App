@@ -1,3 +1,6 @@
+import datetime
+import time
+
 from PyQt5.QtCore import Qt as Qtt
 from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QInputDialog
 from PyQt5 import Qt, QtWidgets
@@ -7,7 +10,7 @@ import sys
 import styles
 from app.admin_window import Admin
 from app.database import Base, sync_engine
-from app.db_requests import create_tables, create_test, all_table, scrap_names, add_new_metal, out_metal
+from app.db_requests import create_tables, create_test, all_table, scrap_names, update_weight, out_metal, get_name_by_id
 from add_del_scrap_window import AddDelScrap
 from app.change_info_window import ChangeScrap
 from app.excel_reports import create_report
@@ -19,11 +22,12 @@ from app.login import Login
 
 class MainWindow(Qt.QMainWindow):
 
-    def __init__(self, role):
+    def __init__(self, current_u_id, role):
         super().__init__()
 
         # Прорисовка окна приложения
         self.name_list = set()
+        self.current_u_id = current_u_id
         self.setGeometry(0, 0, 1500, 600)
         self.setWindowTitle('Главное окно')
         self.setWindowIcon(QIcon("Icon.png"))
@@ -81,22 +85,18 @@ class MainWindow(Qt.QMainWindow):
         self.report_btn.clicked.connect(self.create_new_report)
         self.admin_menu_btn.clicked.connect(self.admin_window)
 
-        self.state_cb()
-
-    # Обработка изменения чекбокса
-    def state_cb(self):
         self.table_filling()
-        self.table.resizeRowsToContents()
 
-    # # Заполнение таблицы значениями из БД
+    # Заполнение таблицы значениями из БД
     def table_filling(self):
-
         self.table.clear()
         self.table.setRowCount(0)
-        self.table.setColumnCount(8)
+        self.table.setColumnCount(10)
         self.table.setHorizontalHeaderLabels(
-            ["ID", "Наименование", "Количество", "Цена", "Сумма", "% НДС", "НДС", "Всего"])
-
+            ["ID", "Наименование", "Количество",
+             "Цена", "Сумма", "% НДС", "НДС",
+             "Всего", "Последнее\nизменения",
+             "Последний\nредактор"])
         records = all_table()
 
         for row in records:
@@ -141,39 +141,46 @@ class MainWindow(Qt.QMainWindow):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 7, item)
 
+            item = QTableWidgetItem(row.edit_date.strftime('%B %d %Y - %H:%M:%S'))
+            item.setTextAlignment(Qtt.AlignCenter)
+            self.table.setItem(row_count, 8, item)
+
+            editor_name = get_name_by_id(row.editor)
+            item = QTableWidgetItem(str(editor_name))
+            item.setTextAlignment(Qtt.AlignCenter)
+            self.table.setItem(row_count, 9, item)
+
         self.table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
 
         self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         # self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        self.table.resizeRowsToContents()
+        # self.table.resizeRowsToContents()
 
     def add_scrap(self):
         st = AddDelScrap(list(self.name_list), True)
         if st.exec_() == QtWidgets.QDialog.Accepted:
-            print(st.result_dict)
-            if st.result_dict:
-                add_new_metal(st.result_dict)
-        self.state_cb()
+            update_weight(self.current_u_id, st.result_dict)
+            self.table_filling()
 
     def out_scrap(self):
         dw = AddDelScrap(list(self.name_list), False)
         if dw.exec_() == QtWidgets.QDialog.Accepted:
             print(dw.result_dict)
             if dw.result_dict:
-                out_metal(dw.result_dict)
-        self.state_cb()
+                out_metal(self.current_u_id, dw.result_dict)
+        self.table_filling()
 
     def edit_scrap(self):
-        et = ChangeScrap(list(self.name_list))
+        et = ChangeScrap(self.current_u_id, list(self.name_list))
         if et.exec_() == QtWidgets.QDialog.Accepted:
             print('succ')
         self.name_list = set()
-        self.state_cb()
+        self.table_filling()
 
     def create_new_report(self):
-        text, ok = QInputDialog.getText(self, 'Новый отчет', 'Введите название файла\nили оставьте поле пустым\n')
+        text, ok = QInputDialog.getText(self, 'Новый отчет', 'Введите название файла')
         if ok:
             if text:
                 create_report(text)
@@ -191,7 +198,7 @@ if __name__ == '__main__':
     app = Qt.QApplication(sys.argv)
     lg = Login()
     if True:  # lg.exec_() == QtWidgets.QDialog.Accepted:
-        w = MainWindow(2)
+        w = MainWindow(1, 2)
         w.showMaximized()
     else:
         sys.exit()
