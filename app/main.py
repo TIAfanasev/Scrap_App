@@ -15,6 +15,7 @@ from add_del_scrap_window import AddDelScrap
 from app.change_info_window import ChangeScrap
 from app.excel_reports import create_report
 from app.login import Login
+from app.report_window import Report
 
 
 #import Var
@@ -40,10 +41,6 @@ class MainWindow(Qt.QMainWindow):
         self.main_label.setStyleSheet("color:black; font: bold 20pt 'Arial';")
         self.main_label.setAlignment(Qtt.AlignCenter)
 
-        # self.checkbox_process = Qt.QCheckBox('Необработанные заявки')
-        # self.checkbox_process.setFont(Styles.font)
-        self.refresh_btn = Qt.QPushButton('Обновить')
-        self.refresh_btn.setFont(styles.font)
         self.add_scrap_btn = Qt.QPushButton('Прием металла')
         self.add_scrap_btn.setFont(styles.font)
         self.out_scrap_button = Qt.QPushButton('Убытие металла')
@@ -60,8 +57,6 @@ class MainWindow(Qt.QMainWindow):
         # self.notif.setStyleSheet("color:grey; font: 9pt 'Arial';")
 
         self.check_layout = Qt.QHBoxLayout()
-        # self.check_layout.addWidget(self.checkbox_process)
-        self.check_layout.addWidget(self.refresh_btn)
         self.check_layout.setAlignment(Qtt.AlignRight)
         self.v_layout = Qt.QVBoxLayout()
         self.table_layout = Qt.QHBoxLayout()
@@ -103,35 +98,35 @@ class MainWindow(Qt.QMainWindow):
             row_count = self.table.rowCount()
             self.table.insertRow(row_count)
 
-            item = QTableWidgetItem(str(row.id))
+            item = QTableWidgetItem(str(row.ScrapList.id))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 0, item)
 
-            name = scrap_names(row.name)
+            name = str(row.NameList.name)
             item = QTableWidgetItem(name)
             self.name_list.add(name)
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 1, item)
 
-            item = QTableWidgetItem(str(row.weight))
+            item = QTableWidgetItem(str(row.ScrapList.weight))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 2, item)
 
-            item = QTableWidgetItem(str(row.price))
+            item = QTableWidgetItem(str(row.ScrapList.price))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 3, item)
 
-            cost = float(format(row.price * row.weight, '.2f'))
+            cost = float(format(row.ScrapList.price * row.ScrapList.weight, '.2f'))
 
             item = QTableWidgetItem(str(cost))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 4, item)
 
-            item = QTableWidgetItem(str(row.percent_nds))
+            item = QTableWidgetItem(str(row.ScrapList.percent_nds))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 5, item)
 
-            nds = float(format(row.percent_nds * cost * 0.01, '.2f'))
+            nds = float(format(row.ScrapList.percent_nds * cost * 0.01, '.2f'))
 
             item = QTableWidgetItem(str(nds))
             item.setTextAlignment(Qtt.AlignCenter)
@@ -141,11 +136,11 @@ class MainWindow(Qt.QMainWindow):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 7, item)
 
-            item = QTableWidgetItem(row.edit_date.strftime('%B %d %Y - %H:%M:%S'))
+            item = QTableWidgetItem(row.ScrapList.edit_date.strftime('%B %d %Y - %H:%M:%S'))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 8, item)
 
-            editor_name = get_name_by_id(row.editor)
+            editor_name = get_name_by_id(row.ScrapList.editor)
             item = QTableWidgetItem(str(editor_name))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 9, item)
@@ -175,15 +170,15 @@ class MainWindow(Qt.QMainWindow):
     def edit_scrap(self):
         et = ChangeScrap(self.current_u_id, list(self.name_list))
         if et.exec_() == QtWidgets.QDialog.Accepted:
-            print('succ')
-        self.name_list = set()
-        self.table_filling()
+            self.name_list = set()
+            self.table_filling()
 
     def create_new_report(self):
         text, ok = QInputDialog.getText(self, 'Новый отчет', 'Введите название файла')
         if ok:
             if text:
-                create_report(text)
+                rp = Report(text)
+                rp.exec_()
             else:
                 Qt.QMessageBox.critical(self, 'Ошибка!', 'Название файла не может быть пустым!')
 

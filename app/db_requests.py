@@ -65,7 +65,7 @@ def scrap_names(n_id=None):
 
 def all_table():
     with session_factory() as session:
-        scraps = session.query(ScrapList).all()
+        scraps = session.query(ScrapList, NameList).join(NameList, ScrapList.name == NameList.id).all()
         return scraps
 
 

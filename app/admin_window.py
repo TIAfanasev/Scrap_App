@@ -75,6 +75,8 @@ class Admin(Qt.QDialog):
             item.clicked.connect(self.deleter)
             self.table.setCellWidget(row_count, 5, item)
 
+            self.table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+
             self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
