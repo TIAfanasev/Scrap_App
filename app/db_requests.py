@@ -59,13 +59,12 @@ def scrap_names(n_id=None):
     if n_id:
         with session_factory() as session:
             name = session.query(NameList.name).where(NameList.id == n_id).one()
-            # print(name)
             return name[0]
 
 
 def all_table():
     with session_factory() as session:
-        scraps = session.query(ScrapList, NameList).join(NameList, ScrapList.name == NameList.id).all()
+        scraps = session.query(ScrapList, NameList).join(NameList, ScrapList.name == NameList.id).order_by(NameList.name.asc()).all()
         return scraps
 
 
@@ -75,7 +74,9 @@ def update_weight(u_id, add_dict):
             n_id = session.query(NameList.id).where(NameList.name == x).one()[0]
             current_values = session.query(ScrapList).where(ScrapList.name == n_id).one()
             updt = update(ScrapList).where(ScrapList.name == n_id).values(
-                weight=format(current_values.weight + add_dict[x], '.2f'))
+                weight=format(current_values.weight + add_dict[x], '.2f'),
+                edit_date=datetime.utcnow(),
+                editor=u_id)
             session.execute(updt)
         session.commit()
 
@@ -225,3 +226,41 @@ def get_name_by_id(u_id):
     with session_factory() as session:
         name = session.query(Users.name).where(Users.id == u_id).one()
         return name[0]
+
+
+def delete_metal(name):
+    with session_factory() as session:
+        n_id = session.query(NameList.id).where(NameList.name == name).one()[0]
+        del_scrap = delete(ScrapList).where(ScrapList.name == n_id)
+        session.execute(del_scrap)
+        session.commit()
+        del_name = delete(NameList).where(NameList.id == n_id)
+        session.execute(del_name)
+        session.commit()
+
+
+def create_new_scrap(name, price, per_nds, u_id):
+    with session_factory() as session:
+        new_name = NameList(name=name)
+        session.add(new_name)
+        session.commit()
+
+        n_id = session.query(NameList.id).where(NameList.name == name).one()[0]
+        scrap = ScrapList(name=n_id,
+                          weight=0,
+                          price=price,
+                          percent_nds=per_nds,
+                          edit_date=datetime.now(),
+                          editor=u_id)
+        session.add(scrap)
+        session.commit()
+
+
+def get_all_names():
+    with session_factory() as session:
+        names = session.query(NameList.name).all()
+        name_list = []
+        for n in names:
+            name_list.append(n[0])
+        name_list.sort()
+        return name_list

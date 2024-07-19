@@ -3,8 +3,7 @@ from typing import Annotated
 
 from sqlalchemy import (
     DateTime,
-    ForeignKey,
-    MetaData
+    ForeignKey
 )
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base

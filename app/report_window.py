@@ -1,10 +1,9 @@
 from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtCore import Qt as Qtt
-from PyQt5.QtWidgets import QMessageBox, QInputDialog, QTableWidgetItem, QHeaderView
+from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView
 from openpyxl.workbook import Workbook
 
-from app.db_requests import check_weight, get_id_by_name, get_nds_price_by_name, get_user_info, delete_user, all_table
-from app.edit_user import UserEditor
+from app.db_requests import all_table
 
 
 class Report(Qt.QDialog):
@@ -15,7 +14,7 @@ class Report(Qt.QDialog):
         self.filename = filename
         self.setGeometry(560, 240, 300, 600)
         self.setWindowTitle('Отчет')
-        self.setWindowIcon(QtGui.QIcon("Icon.png"))
+        self.setWindowIcon(QtGui.QIcon("icons/Icon.png"))
         self.label = Qt.QLabel('Список металлов')
         self.label.setStyleSheet("color:black; font: bold 20pt 'Arial';")
         self.label.setAlignment(Qtt.AlignCenter)
@@ -42,7 +41,6 @@ class Report(Qt.QDialog):
 
         records = all_table()
 
-        # print(records)
         for row in records:
             row_count = self.table.rowCount()
             self.table.insertRow(row_count)
@@ -59,7 +57,6 @@ class Report(Qt.QDialog):
             self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            # self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
             self.table.resizeRowsToContents()
 
     def create_btn_click(self):

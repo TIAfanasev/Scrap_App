@@ -1,6 +1,3 @@
-import datetime
-import time
-
 from PyQt5.QtCore import Qt as Qtt
 from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QInputDialog
 from PyQt5 import Qt, QtWidgets
@@ -9,16 +6,11 @@ import sys
 
 import styles
 from app.admin_window import Admin
-from app.database import Base, sync_engine
-from app.db_requests import create_tables, create_test, all_table, scrap_names, update_weight, out_metal, get_name_by_id
+from app.db_requests import create_tables, create_test, all_table, update_weight, out_metal, get_name_by_id
 from add_del_scrap_window import AddDelScrap
 from app.change_info_window import ChangeScrap
-from app.excel_reports import create_report
 from app.login import Login
 from app.report_window import Report
-
-
-#import Var
 
 
 class MainWindow(Qt.QMainWindow):
@@ -26,12 +18,10 @@ class MainWindow(Qt.QMainWindow):
     def __init__(self, current_u_id, role):
         super().__init__()
 
-        # Прорисовка окна приложения
-        self.name_list = set()
         self.current_u_id = current_u_id
         self.setGeometry(0, 0, 1500, 600)
         self.setWindowTitle('Главное окно')
-        self.setWindowIcon(QIcon("Icon.png"))
+        self.setWindowIcon(QIcon("icons/Icon.png"))
 
         central_widget = Qt.QWidget()
         self.setCentralWidget(central_widget)
@@ -51,10 +41,6 @@ class MainWindow(Qt.QMainWindow):
         self.report_btn.setFont(styles.font)
         self.admin_menu_btn = Qt.QPushButton('Администрирование')
         self.admin_menu_btn.setFont(styles.font)
-
-        # self.notif = Qt.QLabel('*перейти в редактирование можно двойным нажатием '
-        #                        'ЛКМ по нужной ячейке или специальными кнопками ниже')
-        # self.notif.setStyleSheet("color:grey; font: 9pt 'Arial';")
 
         self.check_layout = Qt.QHBoxLayout()
         self.check_layout.setAlignment(Qtt.AlignRight)
@@ -82,7 +68,6 @@ class MainWindow(Qt.QMainWindow):
 
         self.table_filling()
 
-    # Заполнение таблицы значениями из БД
     def table_filling(self):
         self.table.clear()
         self.table.setRowCount(0)
@@ -104,7 +89,6 @@ class MainWindow(Qt.QMainWindow):
 
             name = str(row.NameList.name)
             item = QTableWidgetItem(name)
-            self.name_list.add(name)
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 1, item)
 
@@ -150,17 +134,15 @@ class MainWindow(Qt.QMainWindow):
         self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        # self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        # self.table.resizeRowsToContents()
 
     def add_scrap(self):
-        st = AddDelScrap(list(self.name_list), True)
+        st = AddDelScrap(True)
         if st.exec_() == QtWidgets.QDialog.Accepted:
             update_weight(self.current_u_id, st.result_dict)
             self.table_filling()
 
     def out_scrap(self):
-        dw = AddDelScrap(list(self.name_list), False)
+        dw = AddDelScrap(False)
         if dw.exec_() == QtWidgets.QDialog.Accepted:
             print(dw.result_dict)
             if dw.result_dict:
@@ -168,10 +150,9 @@ class MainWindow(Qt.QMainWindow):
         self.table_filling()
 
     def edit_scrap(self):
-        et = ChangeScrap(self.current_u_id, list(self.name_list))
-        if et.exec_() == QtWidgets.QDialog.Accepted:
-            self.name_list = set()
-            self.table_filling()
+        et = ChangeScrap(self.current_u_id)
+        et.exec_()
+        self.table_filling()
 
     def create_new_report(self):
         text, ok = QInputDialog.getText(self, 'Новый отчет', 'Введите название файла')
@@ -192,7 +173,7 @@ if __name__ == '__main__':
     create_test()
     app = Qt.QApplication(sys.argv)
     lg = Login()
-    if True:  # lg.exec_() == QtWidgets.QDialog.Accepted:
+    if lg.exec_() == QtWidgets.QDialog.Accepted:
         w = MainWindow(1, 2)
         w.showMaximized()
     else:

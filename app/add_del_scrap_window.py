@@ -3,25 +3,24 @@ from PyQt5.QtCore import Qt as Qtt
 from PyQt5.QtWidgets import QMessageBox, QInputDialog
 from openpyxl.workbook import Workbook
 
-from app.db_requests import check_weight, get_id_by_name, get_nds_price_by_name
+from app.db_requests import check_weight, get_id_by_name, get_nds_price_by_name, get_all_names
 
 
 class AddDelScrap(Qt.QDialog):
 
-    def __init__(self, name_list, flag, parent=None):
+    def __init__(self, flag, parent=None):
         super().__init__(parent)
         self.flag = flag
         self.result_dict = None
         self.row_count = None
-        self.name_list = name_list
-        self.name_list.sort()
+        self.name_list = get_all_names()
         self.name_list.insert(0, "Выберите наименование")
         self.setGeometry(560, 240, 800, 600)
         if flag:
             self.setWindowTitle('Прибытие')
         else:
             self.setWindowTitle('Убытие')
-        self.setWindowIcon(QtGui.QIcon("Icon.png"))
+        self.setWindowIcon(QtGui.QIcon("icons/Icon.png"))
 
         self.group_list = []
         if flag:
@@ -32,10 +31,8 @@ class AddDelScrap(Qt.QDialog):
         self.label.setAlignment(Qtt.AlignCenter)
 
         self.table = Qt.QTableWidget()
-        # self.table.setFont(Var.font)
 
         self.start = Qt.QPushButton('Сохранить и выйти')
-        # self.start.setFont(Var.font)
 
         self.v_layout = Qt.QVBoxLayout(self)
         self.v_layout.addWidget(self.label)
@@ -56,32 +53,11 @@ class AddDelScrap(Qt.QDialog):
         self.table.insertRow(self.row_count)
 
         self.row_items()
-        # for x in self.roles_copy:
-        #     if x[0].isdigit() or x[1].isdigit():
-        #         row_count = self.table.rowCount()
-        #         self.table.insertRow(row_count)
-        #
-        #         item = QtWidgets.QTableWidgetItem(x)
-        #         item.setTextAlignment(Qtt.AlignCenter)
-        #         self.table.setItem(row_count, 0, item)
-        #
-        #         item = Qt.QPushButton('+')
-        #         item.clicked.connect(self.add_btn)
-        #         self.table.setCellWidget(row_count, 1, item)
 
         self.table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
-
-    # def add_btn(self):
-    #     gr = self.table.item(self.table.currentRow(), 0).text()
-    #     self.group_list.append(gr)
-    #     self.roles_copy.remove(gr)
-    #     t_groups = self.groups.text()
-    #     self.groups.setText(t_groups + gr + "; ")
-    #     self.gr_table()
-    #
 
     def row_items(self):
         item = Qt.QComboBox()

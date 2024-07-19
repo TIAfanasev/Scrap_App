@@ -1,10 +1,9 @@
-from PyQt5 import Qt, QtWidgets, QtGui
+from PyQt5 import Qt, QtWidgets
 from PyQt5.QtCore import Qt as Qtt
-from PyQt5.QtWidgets import QMessageBox, QInputDialog
 
 from hashlib import md5
 
-from app.db_requests import check_weight, get_id_by_name, get_nds_price_by_name, check_logpass
+from app.db_requests import check_logpass
 
 
 class Login(Qt.QDialog):
@@ -46,7 +45,6 @@ class Login(Qt.QDialog):
         password = self.password_line.text()
         for x in range(10):
             password = md5(password.encode()).hexdigest()
-        print(password)
         self.role = check_logpass(self.login_line.text(), password)
         if self.role:
             self.accept()
