@@ -32,16 +32,16 @@ class ScrapList(Base):
     __tablename__ = "scrap_list"
 
     id: Mapped[intpk]
-    name: Mapped[int] = mapped_column(ForeignKey("name_list.id", ondelete="CASCADE"))
+    name: Mapped[int] = mapped_column(ForeignKey("scrapname_list.id", ondelete="CASCADE"))
     weight: Mapped[float] = mapped_column(nullable=True)
     price: Mapped[float]
     percent_nds: Mapped[float]
-    edit_date: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    edit_date: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=False))
     editor: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
 
 
-class NameList(Base):
-    __tablename__ = "name_list"
+class ScrapNameList(Base):
+    __tablename__ = "scrapname_list"
 
     id: Mapped[intpk]
     name: Mapped[str] = mapped_column(unique=True)

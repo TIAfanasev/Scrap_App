@@ -1,5 +1,5 @@
 from PyQt5 import Qt, QtWidgets, QtGui
-from PyQt5.QtCore import Qt as Qtt
+from PyQt5.QtCore import Qt as Qtt, QSize
 from PyQt5.QtWidgets import QMessageBox, QInputDialog
 from openpyxl.workbook import Workbook
 
@@ -57,7 +57,7 @@ class AddDelScrap(Qt.QDialog):
         self.table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
 
     def row_items(self):
         item = Qt.QComboBox()
@@ -70,7 +70,9 @@ class AddDelScrap(Qt.QDialog):
         item.setAlignment(Qtt.AlignCenter)
         self.table.setCellWidget(self.row_count, 1, item)
 
-        item = Qt.QPushButton('Del')
+        item = Qt.QPushButton()
+        item.setIcon(QtGui.QIcon("icons/Del.png"))
+        item.setIconSize(QSize(22, 22))
         item.clicked.connect(self.del_btn)
         item.setDisabled(True)
         self.table.setCellWidget(self.row_count, 2, item)

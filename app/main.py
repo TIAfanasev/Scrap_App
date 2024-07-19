@@ -6,7 +6,7 @@ import sys
 
 import styles
 from app.admin_window import Admin
-from app.db_requests import create_tables, create_test, all_table, update_weight, out_metal, get_name_by_id
+from app.db_requests import create_tables, create_test, all_table, update_weight, out_metal, get_username_by_id
 from add_del_scrap_window import AddDelScrap
 from app.change_info_window import ChangeScrap
 from app.login import Login
@@ -73,9 +73,9 @@ class MainWindow(Qt.QMainWindow):
         self.table.setRowCount(0)
         self.table.setColumnCount(10)
         self.table.setHorizontalHeaderLabels(
-            ["ID", "Наименование", "Количество",
-             "Цена", "Сумма", "% НДС", "НДС",
-             "Всего", "Последнее\nизменения",
+            ["ID", "Наименование", "Количество, т.",
+             "Цена, руб.", "Сумма, руб.", "% НДС", "НДС, руб.",
+             "Всего, руб.", "Последнее\nизменения",
              "Последний\nредактор"])
         records = all_table()
 
@@ -87,7 +87,7 @@ class MainWindow(Qt.QMainWindow):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 0, item)
 
-            name = str(row.NameList.name)
+            name = str(row.ScrapNameList.name)
             item = QTableWidgetItem(name)
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 1, item)
@@ -124,7 +124,7 @@ class MainWindow(Qt.QMainWindow):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 8, item)
 
-            editor_name = get_name_by_id(row.ScrapList.editor)
+            editor_name = get_username_by_id(row.ScrapList.editor)
             item = QTableWidgetItem(str(editor_name))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 9, item)
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     app = Qt.QApplication(sys.argv)
     lg = Login()
     if lg.exec_() == QtWidgets.QDialog.Accepted:
-        w = MainWindow(1, 2)
+        w = MainWindow(lg.u_id, lg.role)
         w.showMaximized()
     else:
         sys.exit()

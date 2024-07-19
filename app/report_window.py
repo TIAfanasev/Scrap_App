@@ -45,7 +45,7 @@ class Report(Qt.QDialog):
             row_count = self.table.rowCount()
             self.table.insertRow(row_count)
 
-            item = QTableWidgetItem(str(row.NameList.name))
+            item = QTableWidgetItem(str(row.ScrapNameList.name))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 0, item)
 
@@ -84,9 +84,9 @@ class Report(Qt.QDialog):
 
         y = 2
         for row in records:
-            if row.NameList.name in name_list:
+            if row.ScrapNameList.name in name_list:
                 ws.cell(row=y, column=1, value=row.ScrapList.id)
-                ws.cell(row=y, column=2, value=row.NameList.name)
+                ws.cell(row=y, column=2, value=row.ScrapNameList.name)
                 ws.cell(row=y, column=3, value=row.ScrapList.weight)
                 ws.cell(row=y, column=4, value=row.ScrapList.price)
                 cost = float(format(row.ScrapList.price * row.ScrapList.weight, '.2f'))
