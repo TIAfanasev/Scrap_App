@@ -1,3 +1,5 @@
+import os
+
 from PyQt5.QtCore import Qt as Qtt
 from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QInputDialog
 from PyQt5 import Qt, QtWidgets
@@ -176,6 +178,8 @@ if __name__ == '__main__':
     app = Qt.QApplication(sys.argv)
     lg = Login()
     if lg.exec_() == QtWidgets.QDialog.Accepted:
+        if not os.path.isdir("reports"):
+            os.mkdir("reports")
         w = MainWindow(lg.u_id, lg.role)
         w.showMaximized()
     else:
