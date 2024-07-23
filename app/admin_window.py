@@ -1,5 +1,5 @@
 from PyQt5 import Qt, QtWidgets, QtGui
-from PyQt5.QtCore import Qt as Qtt
+from PyQt5.QtCore import Qt as Qtt, QSize
 from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QHeaderView
 from app.db_requests import get_user_info, delete_user
 from app.edit_user import UserEditor
@@ -9,7 +9,7 @@ class Admin(Qt.QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setGeometry(560, 240, 800, 600)
+        self.setGeometry(660, 240, 800, 600)
         self.setWindowTitle('Администрирование')
         self.setWindowIcon(QtGui.QIcon("icons/Icon.png"))
         self.label = Qt.QLabel('Список пользователей')
@@ -64,11 +64,15 @@ class Admin(Qt.QDialog):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 3, item)
 
-            item = Qt.QPushButton('Edit')
+            item = Qt.QPushButton()
+            item.setIcon(QtGui.QIcon("icons/Edit.png"))
+            item.setIconSize(QSize(15, 15))
             item.clicked.connect(self.editor)
             self.table.setCellWidget(row_count, 4, item)
 
-            item = Qt.QPushButton('Del')
+            item = Qt.QPushButton()
+            item.setIcon(QtGui.QIcon("icons/Del.png"))
+            item.setIconSize(QSize(15, 15))
             item.clicked.connect(self.deleter)
             self.table.setCellWidget(row_count, 5, item)
 
@@ -77,7 +81,8 @@ class Admin(Qt.QDialog):
             self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-            self.table.resizeRowsToContents()
+            self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
+            self.table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
 
     def editor(self):
         u_id = int(self.table.item(self.table.currentRow(), 0).text())

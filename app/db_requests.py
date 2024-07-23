@@ -97,7 +97,7 @@ def update_weight(u_id, add_dict):
             current_values = session.query(ScrapList).where(ScrapList.name == n_id).one()
             updt = update(ScrapList).where(ScrapList.name == n_id).values(
                 weight=format(current_values.weight + add_dict[x], '.2f'),
-                edit_date=datetime.utcnow(),
+                edit_date=datetime.now(),
                 editor=u_id)
             session.execute(updt)
         session.commit()
@@ -120,7 +120,7 @@ def out_metal(u_id, del_dict):
             current_values = session.query(ScrapList).where(ScrapList.name == n_id).one()
             updt = update(ScrapList).where(ScrapList.name == n_id).values(
                 weight=format(current_values.weight - del_dict[x], '.2f'),
-                edit_date=datetime.utcnow(),
+                edit_date=datetime.now(),
                 editor=u_id)
             session.execute(updt)
         session.commit()

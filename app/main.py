@@ -124,7 +124,10 @@ class MainWindow(Qt.QMainWindow):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 8, item)
 
-            editor_name = get_username_by_id(row.ScrapList.editor)
+            if row.ScrapList.editor:
+                editor_name = get_username_by_id(row.ScrapList.editor)
+            else:
+                editor_name = "Пользователь удален"
             item = QTableWidgetItem(str(editor_name))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 9, item)
@@ -166,11 +169,10 @@ class MainWindow(Qt.QMainWindow):
     def admin_window(self):
         adm = Admin()
         adm.exec_()
+        self.table_filling()
 
 
 if __name__ == '__main__':
-    create_tables()
-    create_test()
     app = Qt.QApplication(sys.argv)
     lg = Login()
     if lg.exec_() == QtWidgets.QDialog.Accepted:

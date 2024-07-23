@@ -5,7 +5,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
@@ -33,6 +33,7 @@ class ScrapList(Base):
 
     id: Mapped[intpk]
     name: Mapped[int] = mapped_column(ForeignKey("scrapname_list.id", ondelete="CASCADE"))
+    name_link: Mapped["ScrapNameList"] = relationship(back_populates="scrap_link")
     weight: Mapped[float] = mapped_column(nullable=True)
     price: Mapped[float]
     percent_nds: Mapped[float]
@@ -45,3 +46,4 @@ class ScrapNameList(Base):
 
     id: Mapped[intpk]
     name: Mapped[str] = mapped_column(unique=True)
+    scrap_link: Mapped["ScrapList"] = relationship(back_populates="name_link")

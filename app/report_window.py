@@ -1,7 +1,9 @@
 from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtCore import Qt as Qtt
 from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView
+from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
+from openpyxl.styles import Alignment
 
 from app.db_requests import all_table
 
@@ -15,7 +17,7 @@ class Report(Qt.QDialog):
         self.setGeometry(560, 240, 300, 600)
         self.setWindowTitle('Отчет')
         self.setWindowIcon(QtGui.QIcon("icons/Icon.png"))
-        self.label = Qt.QLabel('Список металлов')
+        self.label = Qt.QLabel('Список позиций')
         self.label.setStyleSheet("color:black; font: bold 20pt 'Arial';")
         self.label.setAlignment(Qtt.AlignCenter)
 
@@ -77,24 +79,36 @@ class Report(Qt.QDialog):
 
         records = all_table()
 
-        titles = ["ID", "Наименование", "Количество", "Цена", "Сумма", "% НДС", "НДС", "Всего"]
+        titles = ["ID", "Наименование", "Количество, т.", "Цена, руб.", "Сумма, руб.", "% НДС", "НДС, руб.", "Всего, руб."]
+        widths = [3, 40, 20, 20, 20, 11, 11, 20]
 
         for x in range(1, 9):
-            ws.cell(row=1, column=x, value=titles[x - 1])
+            current_cell = ws.cell(row=1, column=x, value=titles[x - 1])
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
+            letter = get_column_letter(x)
+            ws.column_dimensions[letter].width = widths[x-1]
 
         y = 2
         for row in records:
             if row.ScrapNameList.name in name_list:
-                ws.cell(row=y, column=1, value=row.ScrapList.id)
-                ws.cell(row=y, column=2, value=row.ScrapNameList.name)
-                ws.cell(row=y, column=3, value=row.ScrapList.weight)
-                ws.cell(row=y, column=4, value=row.ScrapList.price)
+                current_cell = ws.cell(row=y, column=1, value=row.ScrapList.id)
+                current_cell.alignment = Alignment(horizontal='center', vertical='center')
+                current_cell = ws.cell(row=y, column=2, value=row.ScrapNameList.name)
+                current_cell.alignment = Alignment(horizontal='center', vertical='center')
+                current_cell = ws.cell(row=y, column=3, value=row.ScrapList.weight)
+                current_cell.alignment = Alignment(horizontal='center', vertical='center')
+                current_cell = ws.cell(row=y, column=4, value=row.ScrapList.price)
+                current_cell.alignment = Alignment(horizontal='center', vertical='center')
                 cost = float(format(row.ScrapList.price * row.ScrapList.weight, '.2f'))
-                ws.cell(row=y, column=5, value=cost)
-                ws.cell(row=y, column=6, value=row.ScrapList.percent_nds)
+                current_cell = ws.cell(row=y, column=5, value=cost)
+                current_cell.alignment = Alignment(horizontal='center', vertical='center')
+                current_cell = ws.cell(row=y, column=6, value=row.ScrapList.percent_nds)
+                current_cell.alignment = Alignment(horizontal='center', vertical='center')
                 nds = float(format(row.ScrapList.percent_nds * cost * 0.01, '.2f'))
-                ws.cell(row=y, column=7, value=nds)
-                ws.cell(row=y, column=8, value=cost - nds)
+                current_cell = ws.cell(row=y, column=7, value=nds)
+                current_cell.alignment = Alignment(horizontal='center', vertical='center')
+                current_cell = ws.cell(row=y, column=8, value=cost - nds)
+                current_cell.alignment = Alignment(horizontal='center', vertical='center')
                 y += 1
 
         wb.save(f'reports\\{self.filename}.xlsx')

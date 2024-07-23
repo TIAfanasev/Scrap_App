@@ -1,6 +1,6 @@
-from PyQt5.QtCore import Qt as Qtt
+from PyQt5.QtCore import Qt as Qtt, QSize
 from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox
-from PyQt5 import Qt, QtWidgets
+from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtGui import QIcon
 
 from app.db_requests import get_nds_price_by_name, update_price_or_nds, check_scrapname_unique, update_scrapname, \
@@ -27,7 +27,7 @@ class ChangeScrap(Qt.QDialog):
         self.label.setStyleSheet("color:black; font: bold 20pt 'Arial';")
         self.label.setAlignment(Qtt.AlignCenter)
 
-        self.add_btn = Qt.QPushButton('Добавить металл')
+        self.add_btn = Qt.QPushButton('Добавить новую позицию')
 
         self.v_layout = Qt.QVBoxLayout(self)
         self.v_layout.addWidget(self.label)
@@ -68,11 +68,15 @@ class ChangeScrap(Qt.QDialog):
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 2, item)
 
-            item = Qt.QPushButton('Del')
+            item = Qt.QPushButton()
+            item.setIcon(QtGui.QIcon("icons/Del.png"))
+            item.setIconSize(QSize(15, 15))
             item.clicked.connect(self.del_btn_click)
             self.table.setCellWidget(row_count, 3, item)
 
         self.table.cellChanged.connect(self.item_changed)
+
+        self.table.horizontalHeader().setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
 
     def item_click(self):
         if self.table.currentColumn() in [0, 1, 2]:
@@ -101,11 +105,11 @@ class ChangeScrap(Qt.QDialog):
             if check_scrapname_unique(current_value):
                 update_scrapname(self.u_id, self.previous_value, current_value)
             else:
-                Qt.QMessageBox.critical(self, 'Ошибка!', 'Такое название уже существует!')
+                Qt.QMessageBox.critical(self, 'Ошибка!', 'Такое наименование уже существует!')
                 self.table.currentItem().setText(self.previous_value)
 
     def del_btn_click(self):
-        button = QMessageBox.warning(self, "Удаление", "Удалить металл?\nЭто действие нельзя отменить",
+        button = QMessageBox.warning(self, "Удаление", "Удалить выбранную позицию?\nЭто действие нельзя отменить",
                                      buttons=QMessageBox.Yes | QMessageBox.No,
                                      defaultButton=QMessageBox.No)
         if button == QMessageBox.Yes:

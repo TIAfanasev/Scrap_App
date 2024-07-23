@@ -62,4 +62,4 @@ class ScrapCreator(Qt.QDialog):
                 create_new_scrap(name, val_price, val_per_nds, self.u_id)
                 self.accept()
             else:
-                Qt.QMessageBox.critical(self, 'Ошибка!', 'Такое название уже существует!')
+                Qt.QMessageBox.critical(self, 'Ошибка!', 'Такое наименование уже существует!')

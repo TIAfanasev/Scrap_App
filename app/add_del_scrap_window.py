@@ -1,6 +1,8 @@
 from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtCore import Qt as Qtt, QSize
 from PyQt5.QtWidgets import QMessageBox, QInputDialog
+from openpyxl.styles import Alignment
+from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 
 from app.db_requests import check_weight, get_id_by_name, get_nds_price_by_name, get_all_names
@@ -112,13 +114,14 @@ class AddDelScrap(Qt.QDialog):
                 if button == QMessageBox.Yes:
                     name = ''
                     while not name:
-                        name, ok = QInputDialog.getText(self, 'Новый отчет',
-                                                        'Введите название файла\nили оставьте поле пустым\n')
+                        name, ok = QInputDialog.getText(self, 'Новый отчет', 'Введите название файла:')
                         if ok:
                             if name:
                                 self.edit_report(name)
                             else:
                                 Qt.QMessageBox.critical(self, 'Ошибка!', 'Название файла не может быть пустым!')
+                        else:
+                            break
 
                 self.accept()
             else:
@@ -152,24 +155,37 @@ class AddDelScrap(Qt.QDialog):
         else:
             ws.title = "Убытие"
 
-        titles = ["ID", "Наименование", "Количество", "Цена", "Сумма", "% НДС", "НДС", "Всего"]
+        titles = ["ID", "Наименование", "Количество, т.", "Цена, руб.", "Сумма, руб.", "% НДС", "НДС, руб.",
+                  "Всего, руб."]
+        widths = [3, 40, 20, 20, 20, 11, 11, 20]
 
         for x in range(1, 9):
-            ws.cell(row=1, column=x, value=titles[x - 1])
+            current_cell = ws.cell(row=1, column=x, value=titles[x - 1])
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
+            letter = get_column_letter(x)
+            ws.column_dimensions[letter].width = widths[x - 1]
 
         y = 2
         for one in self.result_dict.keys():
-            ws.cell(row=y, column=1, value=get_id_by_name(one))
-            ws.cell(row=y, column=2, value=one)
-            ws.cell(row=y, column=3, value=self.result_dict[one])
+            current_cell = ws.cell(row=y, column=1, value=get_id_by_name(one))
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
+            current_cell = ws.cell(row=y, column=2, value=one)
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
+            current_cell = ws.cell(row=y, column=3, value=self.result_dict[one])
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
             nds_n_price = get_nds_price_by_name(one)
-            ws.cell(row=y, column=4, value=nds_n_price.price)
+            current_cell = ws.cell(row=y, column=4, value=nds_n_price.price)
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
             cost = float(format(nds_n_price.price * self.result_dict[one], '.2f'))
-            ws.cell(row=y, column=5, value=cost)
-            ws.cell(row=y, column=6, value=nds_n_price.percent_nds)
+            current_cell = ws.cell(row=y, column=5, value=cost)
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
+            current_cell = ws.cell(row=y, column=6, value=nds_n_price.percent_nds)
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
             nds = float(format(nds_n_price.percent_nds * cost * 0.01, '.2f'))
-            ws.cell(row=y, column=7, value=nds)
-            ws.cell(row=y, column=8, value=cost - nds)
+            current_cell = ws.cell(row=y, column=7, value=nds)
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
+            current_cell = ws.cell(row=y, column=8, value=cost - nds)
+            current_cell.alignment = Alignment(horizontal='center', vertical='center')
             y += 1
 
         wb.save(f'{name}.xlsx')
