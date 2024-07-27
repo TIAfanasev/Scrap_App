@@ -3,9 +3,9 @@ from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox
 from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtGui import QIcon
 
-from app.db_requests import get_nds_price_by_name, update_price_or_nds, check_scrapname_unique, update_scrapname, \
+from db_requests import get_nds_price_by_name, update_price_or_nds, check_scrapname_unique, update_scrapname, \
     delete_metal, get_all_names
-from app.new_scrap_window import ScrapCreator
+from new_scrap_window import ScrapCreator
 
 
 class ChangeScrap(Qt.QDialog):

@@ -5,7 +5,7 @@ from openpyxl.styles import Alignment
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 
-from app.db_requests import check_weight, get_id_by_name, get_nds_price_by_name, get_all_names
+from db_requests import check_weight, get_id_by_name, get_nds_price_by_name, get_all_names
 
 
 class AddDelScrap(Qt.QDialog):

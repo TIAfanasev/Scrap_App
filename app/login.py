@@ -5,7 +5,7 @@ from hashlib import md5
 
 from PyQt5.QtGui import QIcon
 
-from app.db_requests import check_logpass, get_user_id_by_login
+from db_requests import check_logpass, get_user_id_by_login
 
 
 class Login(Qt.QDialog):

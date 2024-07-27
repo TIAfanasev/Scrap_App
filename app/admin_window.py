@@ -1,8 +1,8 @@
 from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtCore import Qt as Qtt, QSize
 from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QHeaderView
-from app.db_requests import get_user_info, delete_user
-from app.edit_user import UserEditor
+from db_requests import get_user_info, delete_user
+from edit_user import UserEditor
 
 
 class Admin(Qt.QDialog):

@@ -1,18 +1,20 @@
 import os
 
-from PyQt5.QtCore import Qt as Qtt
-from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QInputDialog
 from PyQt5 import Qt, QtWidgets
+from PyQt5.QtCore import Qt as Qtt
 from PyQt5.QtGui import QIcon
 import sys
 
+from sqlalchemy_utils import database_exists, create_database
+
 import styles
-from app.admin_window import Admin
-from app.db_requests import create_tables, create_test, all_table, update_weight, out_metal, get_username_by_id
+from admin_window import Admin
+from database import sync_engine
+from db_requests import create_tables, create_test, all_table, update_weight, out_metal, get_username_by_id
 from add_del_scrap_window import AddDelScrap
-from app.change_info_window import ChangeScrap
-from app.login import Login
-from app.report_window import Report
+from change_info_window import ChangeScrap
+from login import Login
+from report_window import Report
 
 
 class MainWindow(Qt.QMainWindow):
@@ -85,44 +87,44 @@ class MainWindow(Qt.QMainWindow):
             row_count = self.table.rowCount()
             self.table.insertRow(row_count)
 
-            item = QTableWidgetItem(str(row.ScrapList.id))
+            item = QtWidgets.QTableWidgetItem(str(row.ScrapList.id))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 0, item)
 
             name = str(row.ScrapNameList.name)
-            item = QTableWidgetItem(name)
+            item = QtWidgets.QTableWidgetItem(name)
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 1, item)
 
-            item = QTableWidgetItem(str(row.ScrapList.weight))
+            item = QtWidgets.QTableWidgetItem(str(row.ScrapList.weight))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 2, item)
 
-            item = QTableWidgetItem(str(row.ScrapList.price))
+            item = QtWidgets.QTableWidgetItem(str(row.ScrapList.price))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 3, item)
 
             cost = float(format(row.ScrapList.price * row.ScrapList.weight, '.2f'))
 
-            item = QTableWidgetItem(str(cost))
+            item = QtWidgets.QTableWidgetItem(str(cost))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 4, item)
 
-            item = QTableWidgetItem(str(row.ScrapList.percent_nds))
+            item = QtWidgets.QTableWidgetItem(str(row.ScrapList.percent_nds))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 5, item)
 
             nds = float(format(row.ScrapList.percent_nds * cost * 0.01, '.2f'))
 
-            item = QTableWidgetItem(str(nds))
+            item = QtWidgets.QTableWidgetItem(str(nds))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 6, item)
 
-            item = QTableWidgetItem(str(cost - nds))
+            item = QtWidgets.QTableWidgetItem(str(cost - nds))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 7, item)
 
-            item = QTableWidgetItem(row.ScrapList.edit_date.strftime('%B %d %Y - %H:%M:%S'))
+            item = QtWidgets.QTableWidgetItem(row.ScrapList.edit_date.strftime('%B %d %Y - %H:%M:%S'))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 8, item)
 
@@ -130,15 +132,15 @@ class MainWindow(Qt.QMainWindow):
                 editor_name = get_username_by_id(row.ScrapList.editor)
             else:
                 editor_name = "Пользователь удален"
-            item = QTableWidgetItem(str(editor_name))
+            item = QtWidgets.QTableWidgetItem(str(editor_name))
             item.setTextAlignment(Qtt.AlignCenter)
             self.table.setItem(row_count, 9, item)
 
         self.table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
 
         self.table.horizontalHeader().setDefaultAlignment(Qtt.AlignCenter)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
 
     def add_scrap(self):
         st = AddDelScrap(True)
@@ -160,7 +162,7 @@ class MainWindow(Qt.QMainWindow):
         self.table_filling()
 
     def create_new_report(self):
-        text, ok = QInputDialog.getText(self, 'Новый отчет', 'Введите название файла')
+        text, ok = QtWidgets.QInputDialog.getText(self, 'Новый отчет', 'Введите название файла')
         if ok:
             if text:
                 rp = Report(text)
@@ -175,6 +177,11 @@ class MainWindow(Qt.QMainWindow):
 
 
 if __name__ == '__main__':
+    if not database_exists(sync_engine.url):
+        create_database(sync_engine.url)
+        create_tables()
+        create_test()
+
     app = Qt.QApplication(sys.argv)
     lg = Login()
     if lg.exec_() == QtWidgets.QDialog.Accepted:

@@ -2,8 +2,8 @@ from PyQt5 import Qt, QtWidgets, QtGui
 from PyQt5.QtCore import Qt as Qtt
 from hashlib import md5
 
-from app import styles
-from app.db_requests import get_user_info, check_unique_login, update_user, get_all_roles, create_user
+import styles
+from db_requests import get_user_info, check_unique_login, update_user, get_all_roles, create_user
 
 
 class UserEditor(Qt.QDialog):

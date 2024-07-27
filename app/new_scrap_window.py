@@ -1,8 +1,8 @@
 from PyQt5 import Qt, QtGui
 from PyQt5.QtCore import Qt as Qtt
 
-from app import styles
-from app.db_requests import check_scrapname_unique, create_new_scrap
+import styles
+from db_requests import check_scrapname_unique, create_new_scrap
 
 
 class ScrapCreator(Qt.QDialog):

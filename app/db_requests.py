@@ -1,9 +1,6 @@
 from datetime import datetime
-
 from sqlalchemy import update, delete
-
-from app.database import sync_engine, session_factory, Base
-
+from database import sync_engine, session_factory, Base
 from models import Users, ScrapList, ScrapNameList, Roles
 
 

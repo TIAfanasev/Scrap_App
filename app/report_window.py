@@ -5,7 +5,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 from openpyxl.styles import Alignment
 
-from app.db_requests import all_table
+from db_requests import all_table
 
 
 class Report(Qt.QDialog):
